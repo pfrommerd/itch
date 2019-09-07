@@ -78,6 +78,8 @@
     "webpack": "^4.39.3",
     "webpack-dev-server": "^3.8.0",
     "webpack-hot-middleware": "^2.25.0"
+    "rete": "^1.4.1",
+    "rete-vue-render-plugin": "0.4.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.2",
