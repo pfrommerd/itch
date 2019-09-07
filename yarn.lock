@@ -4473,6 +4473,11 @@ keyboardevents-areequal@^0.2.1:
   resolved "https://registry.yarnpkg.com/keyboardevents-areequal/-/keyboardevents-areequal-0.2.2.tgz#88191ec738ce9f7591c25e9056de928b40277194"
   integrity sha512-Nv+Kr33T0mEjxR500q+I6IWisOQ0lK1GGOncV0kWE6n4KFmpcu7RUX5/2B0EUtX51Cb0HjZ9VJsSY3u4cBa0kw==
 
+keypress@0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/keypress/-/keypress-0.2.1.tgz#1e80454250018dbad4c3fe94497d6e67b6269c77"
+  integrity sha1-HoBFQlABjbrUw/6USX1uZ7YmnHc=
+
 killable@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/killable/-/killable-1.0.1.tgz#4c8ce441187a061c7474fb87ca08e2a638194892"
@@ -4997,6 +5002,11 @@ no-case@^2.2.0, no-case@^2.3.2:
   dependencies:
     lower-case "^1.1.1"
 
+node-audiorecorder@1.4.1:
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/node-audiorecorder/-/node-audiorecorder-1.4.1.tgz#e0de85e1644b22ea8f27b780f211ec3f9ca0b13a"
+  integrity sha512-8NCgj/tHyTTOL9jiuluBt3JDQXGca7gnSNziPjLeCMSYmMqYunskYwTmSxdXi4exNkk6ZBe6iVRI/axT04Nm0g==
+
 node-fetch@^2.2.0, node-fetch@^2.3.0, node-fetch@^2.6.0:
   version "2.6.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.0.tgz#e633456386d4aa55863f676a7ab0daa8fdecb0fd"
@@ -5056,13 +5066,6 @@ node-pre-gyp@^0.12.0:
     rimraf "^2.6.1"
     semver "^5.3.0"
     tar "^4"
-
-node-record-lpcm16@1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/node-record-lpcm16/-/node-record-lpcm16-1.0.1.tgz#2201dee8d7dc8fc4055ab1bd275154201433e635"
-  integrity sha512-H75GMOP8ErnF67m21+qSgj4USnzv5RLfm7OkEItdIi+soNKoJZpMQPX6umM8Cn9nVPSgd/dBUtc1msst5MmABA==
-  dependencies:
-    debug "^2.6.8"
 
 node-releases@^1.1.29:
   version "1.1.29"
