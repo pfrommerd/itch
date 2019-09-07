@@ -1,18 +1,35 @@
 <template>
   <div id="app">
-    <workspace/>
+    <nesting ref="main"/>
   </div>
 </template>
 
 <script>
-  import Workspace from './components/Workspace'
-console.log(Workspace);
+  import Nesting from './components/Nesting'
   export default {
     name: 'itch',
-    components: {Workspace}
+    components: {Nesting},
+    mounted: function() {
+    },
   }
 </script>
 
 <style>
   /* CSS */
+  html {
+    border: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+  }
+  body {
+    border: 0px;
+    margin: 0px;
+    width: 100%;
+    height: 100%;
+  }
+  #app {
+    width: 100%;
+    height: 100%;
+  }
 </style>
