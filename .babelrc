@@ -3,28 +3,21 @@
   "env": {
     "main": {
       "presets": [
-        ["env", {
-          "targets": { "node": 7 }
-        }],
-        "stage-0"
+        '@vue/app',
+        ['@babel/preset-env', { "targets": { "node": 11 } }]
       ]
     },
     "renderer": {
       "presets": [
-        ["env", {
-          "modules": false
-        }],
-        "stage-0"
+        '@vue/app',
+        ['@babel/preset-env', { "modules": false } ]
       ]
     },
     "web": {
       "presets": [
-        ["env", {
-          "modules": false
-        }],
-        "stage-0"
+        '@vue/app',
+        ['@babel/preset-env', { "modules": false } ]
       ]
     }
-  },
-  "plugins": ["transform-runtime"]
+  }
 }
