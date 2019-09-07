@@ -1,12 +1,15 @@
 <template>
   <div id="app">
-    <router-view></router-view>
+    <workspace/>
   </div>
 </template>
 
 <script>
+  import Workspace from './components/Workspace'
+console.log(Workspace);
   export default {
-    name: 'itch'
+    name: 'itch',
+    components: {Workspace}
   }
 </script>
 
