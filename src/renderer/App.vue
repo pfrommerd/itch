@@ -21,6 +21,7 @@
     margin: 0px;
     width: 100%;
     height: 100%;
+    font-family: Arial,sans-serif;
   }
   body {
     border: 0px;

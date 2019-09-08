@@ -80,7 +80,11 @@
     "vuex-electron": "^1.0.0",
     "webpack": "^4.39.3",
     "webpack-dev-server": "^3.8.0",
-    "webpack-hot-middleware": "^2.25.0"
+    "webpack-hot-middleware": "^2.25.0",
+    "rete-connection-plugin": "0.8.2-rc.1",
+    "@google-cloud/speech": "3.2.5",
+    "keypress": "0.2.1",
+    "node-audiorecorder": "1.4.1"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.2",
