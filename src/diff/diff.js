@@ -198,6 +198,8 @@ function handleDisconnectArgument(word, editor, savedArgs, argCount) {
         return;
     }
     // now we have all the data we need
+
+    // not sure how we find a conneciton between two nodes
     for (let n in editor.nodes) {
         if (n.name === savedArgs[0]) {
             // we have source node
@@ -229,4 +231,6 @@ function getModeFromWord(word, currentMode) {
     return currentMode;
 
 }
+
+// testing
 regExTranslator('create 1, 2, 3, 4, and 5, and remove 6');
