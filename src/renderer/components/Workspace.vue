@@ -1,6 +1,6 @@
 <template>
   <div class="layers">
-    <div class="workspace" ref="workspace" style="width:100%"/>
+    <div class="workspace" ref="workspace" style="width:100%" v-on:click="focus()"/>
     <div class="overlay" v-bind:class="{invisible: module && module.length > 0}">
       <div class="overlay-panel">
         <div class="overlay-buttons">
@@ -16,11 +16,20 @@
 </template>
 
 <script>
-import {modules, bind, createEditor, loadEditor, saveEditor} from './workspace.js'
+import {modules, bind, createEditor, focusEditor, loadEditor, saveEditor} from './workspace.js'
+import 'vue2-toast/lib/toast.css';
+import Toast from 'vue2-toast';
+import Vue from 'vue';
+Vue.use(Toast, {
+    type: 'center',
+    duration: 3000,
+    wordWrap: true,
+    width: '150px'
+});
 
 export default {
   name: 'workspace',
-  components: { },
+  components: {},
   data: function() {
     return { module: '',
              loading: false,
@@ -56,6 +65,9 @@ export default {
         }
       })();
     },
+    note: function(text) {
+      this.$toast.bottom(text);
+    },
     edited: function() {
       if (!this.loading) this.save();
     },
@@ -66,6 +78,9 @@ export default {
       } catch (e) {
         console.error('failed to save', e);
       }
+    },
+    focus() {
+      focusEditor(this.editor);
     }
   },
   mounted: function() {
@@ -91,6 +106,23 @@ export default {
     grid-column: 1;
     grid-row: 1;
   }
+  .notifications {
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    width: 100%;
+    height: 100%;
+    z-index: -100;
+  }
+  .note {
+    position: static;
+    left: 50%;
+    bottom: 0%;
+    width: 100px;
+    height: 50px;
+    background-color: #ddd;
+    z-index: 20000;
+  }
   .dirty {
     border-width: 5px;
     border-style: solid;
@@ -114,8 +146,6 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
-
-    transition: opacity 0.1s;
 
     background-color: #444;
     opacity: 0.7;
@@ -158,6 +188,5 @@ export default {
   }
   .invisible {
     z-index: -1000;
-    opacity: 1;
   }
 </style>

@@ -46,6 +46,14 @@ class TextControl extends Rete.Control {
     }
 }
 
+function retrieve(node, inputName) {
+  var input = node.inputs.get(inputName);
+  if (!input) return null;
+  if (input.connections.length == 0) return null;
+  var conn = input.connections[0];
+  return [conn.output.node, conn.output.name];
+}
+
 class AddComponent extends Rete.Component {
   constructor() {
     super("Add");
@@ -54,6 +62,80 @@ class AddComponent extends Rete.Component {
     node.addOutput(new Rete.Output("C", 'C', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
     node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.execute = async function(cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'A');
+      var [b, bo] = retrieve(node, 'B');
+      if (!a) throw new Error('Could not find A input for Add');
+      if (!b) throw new Error('Could not find B input for Add');
+
+      var ar = (await a.execute(cache))[ao];
+      var br = (await b.execute(cache))[bo];
+      var result = {'C': ar + br};
+      cache.set(this, result);
+      return result;
+    };
+  }
+}
+
+class MultiplyComponent extends Rete.Component {
+  constructor() {
+    super("Multiply");
+  }
+  async builder(node) {
+    node.addOutput(new Rete.Output("C", 'C', anySocket));
+    node.addInput(new Rete.Input("A", 'A', anySocket));
+    node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.execute = async function(cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'A');
+      var [b, bo] = retrieve(node, 'B');
+      if (!a) throw new Error('Could not find A input for Multiply');
+      if (!b) throw new Error('Could not find B input for Multiply');
+
+      var ar = (await a.execute(cache))[ao];
+      var br = (await b.execute(cache))[bo];
+
+      var result = {'C': ar * br};
+      cache.set(this, result);
+      return result;
+    };
+  }
+}
+
+class IfComponent extends Rete.Component {
+  constructor() {
+    super("If");
+  }
+  async builder(node) {
+    node.addInput(new Rete.Input("Expr", 'Expr', anySocket));
+    node.addInput(new Rete.Input("True", 'True', anySocket));
+    node.addInput(new Rete.Input("False", 'False', anySocket));
+    node.addOutput(new Rete.Output("Value", 'Value', anySocket));
+
+    node.execute = async function(cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'True');
+      var [b, bo] = retrieve(node, 'False');
+      if (!a) throw new Error('Could not find True input for If');
+      if (!b) throw new Error('Could not find False input for If');
+
+      var [e, eo] = retrieve(node, 'Expr');
+      if (!e) throw new Error('Could not find Expr input for If');
+      var er = (await e.execute(cache))[eo];
+
+      var val = null;
+      if (er) {
+        val = (await a.execute(cache))[ao];
+      } else {
+        val = (await b.execute(cache))[bo];
+      }
+      var result = {'Value': val};
+      cache.set(this, result);
+      return result;
+    };
   }
 }
 
@@ -61,11 +143,19 @@ class ConstantComponent extends Rete.Component {
   constructor() {
     super("Constant");
   }
+
   async builder(node) {
     if (!node.data) node.data = {};
     if (!node.data.value) node.data.value = '0';
     var ctrl = new TextControl(this.editor, 'value');
     node.addControl(ctrl).addOutput(new Rete.Output("Value", 'Value', anySocket));
+
+    node.execute = await function(cache) {
+      if (cache.has(this)) return cache.get(this);
+      var result = {'Value': parseInt(node.data.value)};
+      cache.set(this, result);
+      return result;
+    };
   }
 }
 
@@ -76,7 +166,22 @@ class InputComponent extends Rete.Component {
   }
   async builder(node) {
     var ctrl = new TextControl(this.editor, 'name');
-    node.addControl(ctrl).addOutput(new Rete.Output('output', 'Input', anySocket));
+    node.addControl(ctrl).addOutput(new Rete.Output('Input', 'Input', anySocket));
+    node.execute = async function(cache) {
+      if (cache.has(this)) {
+        var c = cache.get(this);
+        if (typeof c == 'function') {
+          var s = c();
+          // make them all wait on the same promise
+          cache.set(this, () => s);
+          var r = await s;
+          cache.set(this, {'Input': r});
+        }
+        return cache.get(this);
+      } else {
+        throw new Error('Input not linked to anything, cannot execute');
+      }
+    }
   }
 }
 
@@ -87,8 +192,17 @@ class OutputComponent extends Rete.Component {
   }
   async builder(node) {
     var ctrl = new TextControl(this.editor, 'name');
-    node.addControl(ctrl).addInput(new Rete.Input("input", 'Output', anySocket));
+    node.addControl(ctrl).addInput(new Rete.Input("Output", 'Output', anySocket));
     if (node.data && node.data.name) ctrl.setValue(node.data.name);
+
+    node.execute = async function(cache) {
+      if (cache.has(node)) return cache.get(node);
+      var [i, io] = retrieve(node, 'Output');
+      var iv = (await i.execute(cache))[io];
+      var result = {'Output': iv};
+      cache.set(node, result);
+      return result;
+    }
   }
 }
 
@@ -143,6 +257,39 @@ class ModuleComponent extends Rete.Component {
       }
     }
   }
+  async load() {
+    var nodes = {};
+    var inputs = {};
+    var outputs = {};
+    var source = this.modules.getSource(this.name);
+    await Promise.all(Object.keys(source.nodes).map(async id => {
+      const node = source.nodes[id];
+      const component = this.modules.component(node.name);
+
+      nodes[id] = await component.build(Rete.Node.fromJSON(node));
+      if (nodes[id].name == 'Input') inputs[id] = nodes[id];
+      if (nodes[id].name == 'Output') outputs[id] = nodes[id];
+    }));
+    Object.keys(source.nodes).forEach(id => {
+      const jsonNode = source.nodes[id];
+      const node = nodes[id];
+      Object.keys(jsonNode.outputs).forEach(key => {
+        const outputJson = jsonNode.outputs[key];
+        outputJson.connections.forEach(jsonConnection => {
+          const nodeId = jsonConnection.node;
+          const data = jsonConnection.data;
+          const targetOutput = node.outputs.get(key);
+          const targetInput = nodes[nodeId].inputs.get(jsonConnection.input);
+          if (!targetOutput || !targetInput) {
+            throw new Error('Input/output not found for connection');
+          }
+          var conn = targetOutput.connectTo(targetInput);
+          conn.data = data;
+        });
+      });
+    });
+    return [nodes, inputs, outputs];
+  }
 
   builder(node) {
     // whenever there is a save from another editor,
@@ -150,39 +297,55 @@ class ModuleComponent extends Rete.Component {
     node.data.module = this.name;
     this.updateNode(node);
     this.modules.onChange(this.name, () => this.updateNode(node));
+
+    var c = this;
+    node.execute = async function(cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [nodes, inputs, outputs] = await c.load();
+      var newCache = new Map();
+      for (let i in inputs) {
+        let input = inputs[i];
+        newCache.set(input, async function() {
+          var [i, io] = retrieve(node, input.data.name);
+          return (await i.execute(cache))[io];
+        });
+      }
+      var outputs = await Promise.all(Object.keys(outputs).map(async id => {
+        const node = outputs[id];
+        const val = (await node.execute(newCache))['Output'];
+        return [ node.data.name, val];
+      }));
+      var result = {};
+      for (let r of outputs) {
+        let [n, v] = r;
+        result[n] = v;
+      }
+      cache.set(this, result);
+      return result;
+    };
   }
 }
+
+import * as fs from 'fs';
 
 class Modules {
   constructor() {
     this.builtins = {};
-    this.data = {
-      'main': { data: {
-        'id': 'itch@0.0.1',
-        'nodes': {
-          '1' : {
-            'id': '1',
-            'name': 'Output',
-            'data': {'name': 'foo'},
-            'inputs': {},
-            'outputs': {},
-            'position': [0, 0]
-          }
-        }
-      }},
-      'lib': { data: {
-        'id': 'itch@0.0.1',
-        'nodes': {
-          '1' : {
-            'id': '1',
-            'position': [0, 0],
-            'name': 'Add'
-          }
-        }
-      }}
-    }
+    this.data = {};
     this.observers = new Map();
     this.globalObservers = [];
+
+    try {
+      let rawData = fs.readFileSync('data.json');
+      let json = JSON.parse(rawData);
+      this.data = json;
+    } catch (e) {}
+
+    var data = this.data;
+    setInterval(function() {
+      var json = JSON.stringify(data);
+      fs.writeFile('data.json', json, 'utf8', function() {});
+    }, 10000);
   }
 
   listCustom() {
@@ -259,6 +422,8 @@ export let modules = new Modules();
 
 modules.addBuiltin(new ConstantComponent());
 modules.addBuiltin(new AddComponent());
+modules.addBuiltin(new MultiplyComponent());
+modules.addBuiltin(new IfComponent());
 modules.addBuiltin(new InputComponent());
 modules.addBuiltin(new OutputComponent());
 
@@ -273,7 +438,6 @@ export function bind(container, target) {
   let data = modules.getData();
   editor.use(ModulePlugin, { engine, modules: data});
 
-
   editor.view.resize();
   container.style.width = "100%";
   container.style.height = "100%";
@@ -284,10 +448,33 @@ export function bind(container, target) {
       target.edited();
     });
   editor.on('keydown', e => {
+    if (focus != editor) return;
     if (e.dead) return;
     switch (e.code) {
     case 'Space': 
-        console.log('hi');
+        break;
+    case 'KeyR':
+        (async() => {
+          if (editor.selected.list.length > 0) {
+            var node = editor.selected.list[0];
+            var rep = null;
+            try {
+              var result = await node.execute(new Map());
+              var keys = Object.keys(result);
+              if (keys.length == 1) {
+                rep = result[keys[0]];
+              } else {
+                rep = '';
+                for (let k of keys) {
+                  rep = k + '= ' + result[k].toString() + '\n';
+                }
+              }
+            } catch (e) {
+              rep = e.toString();
+            }
+            target.note(rep);
+          }
+        })();
         break;
     }
   });
@@ -296,6 +483,7 @@ export function bind(container, target) {
     engine.register(c);
     editor.register(c);
   }
+
   var availableModules = modules.listCustom();
   modules.anyChange((name) => {
     if (target.availableModules.indexOf(name) < 0) {
@@ -324,4 +512,8 @@ export function saveEditor(module, editor) {
 export function createEditor(module, editor) {
   var m = modules.createModule(module);
   editor.fromJSON(m);
+}
+var focus = null;
+export function focusEditor(editor) {
+  focus = editor;
 }
