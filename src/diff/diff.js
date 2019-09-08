@@ -69,7 +69,7 @@ const NodeTypes = {
     IF: 9
 }
 
-function regExTranslator(sentence) {
+function regExTranslator(sentence, editor) {
     var nlp = require('compromise');
 
     var doc = nlp(sentence);
@@ -95,41 +95,121 @@ function regExTranslator(sentence) {
         }
 
         if (cmdMode == CmdTypes.CREATE) {
-            handleCreateArgument(tagged, savedArgs, argCount);
+            handleCreateArgument(tagged, editor, savedArgs, argCount);
         } else if (cmdMode == CmdTypes.DELETE) {
-            handleDeleteArgument(tagged, savedArgs, argCount);
+            handleDeleteArgument(tagged, editor, savedArgs, argCount);
         } else if (cmdMode == CmdTypes.CONNECT) {
-            handleConnectArgument(tagged, savedArgs, argCount);
+            handleConnectArgument(tagged, editor, savedArgs, argCount);
         } else if (cmdMode == CmdTypes.DISCONNECT) {
-            handleDisconnectArgument(tagged, savedArgs, argCount);
+            handleDisconnectArgument(tagged, editor, savedArgs, argCount);
         } else if (cmdMode == CmdTypes.UPDATE) {
-            parseUpdateArgument(tagged, savedArgs, argCount);
+            parseUpdateArgument(tagged, editor, savedArgs, argCount);
         }
     });
 }
 
-function handleCreateArgument(word, savedArgs, argCount) {
+function handleCreateArgument(word, editor, savedArgs, argCount) {
     // send create command here
     console.log('create ' + word.out('text'));
+    // check if we are making a constant
+    let data = word.out('text');
+    if (argCount == 0) {
+        switch (data) {
+            case 0:
+                // making a constant; do nothing and wait for next piece of data
+                argCount++;
+            case 1:
+                // make node normally for any other node type
+                // case on type of node
+                let n = new Node('todo: update naming system');
+                editor.addNode(n)
+        }
+    } else {
+        // argCount must be 1
+        // data contains value for constant
+        let n = new Node('a constant');
+        n.data = data;
+        editor.addNode(n);
+    }
 }
 
 // doesn't need to save any args
-function handleDeleteArgument(word) {
+function handleDeleteArgument(word, editor) {
     // send delete command here
     console.log('delete ' + word.out('text'));
+    // get the node (unique name)
+    const nodeName = word.out('text');
+    for (let n in editor.nodes) {
+        if (n.name === nodeName) {
+            editor.removeNode(n);
+            break;
+        }
+    }
 }
 
-function handleConnectArgument(word, savedArgs, argCount) {
+function handleConnectArgument(word, editor, savedArgs, argCount) {
     // send connect command here
     console.log('connect ' + word.out('text'));
+    // need from node/output and to node/input
+    if (argCount < 4) {
+        savedArgs[argCount] = word.out('text');
+        return;
+    }
+    // now we have all the data we need
+    // search for the input and output
+    let output = null;
+    let input = null;
+    for (let n in editor.nodes) {
+        if (n.name === savedArgs[0]) {
+            // this is the node with the output
+            // search keys for name
+            let i = 0;
+            for (let x in n.outputs.prototype.keys()) {
+                if (x == savedArgs[1]) {
+                    output = n.outputs.get(x);
+                } else {
+                    i++;
+                }
+            }
+        } else if (n.name === savedArgs[2]) {
+            // this is the node with the input 
+            // search keys for number
+            let i = 0;
+            for (let x in n.outputs.prototype.keys()) {
+                if (x === savedArgs[4]) {
+                    input = n.outputs.get(x);
+                } else {
+                    i++;
+                }
+            }
+        }
+    }
+    if (output != null && input != null) {
+        editor.connect(output, input);
+    }
 }
 
-function handleDisconnectArgument(word, savedArgs, argCount) {
+function handleDisconnectArgument(word, editor, savedArgs, argCount) {
     // send disconnect command here
     console.log('disconnect ' + word.out('text'));
+    // need from node/output and to node/input
+    if (argCount < 4) {
+        savedArgs[argCount] = word.out('text');
+        return;
+    }
+    // now we have all the data we need
+    for (let n in editor.nodes) {
+        if (n.name === savedArgs[0]) {
+            // we have source node
+            n.getConnections.forEach((connection) => {
+                // check connection input and output with saved args
+
+            });
+        }
+    }
 }
 
-function parseUpdateArgument(word, savedArgs, argCount) {
+function parseUpdateArgument(word, editor, savedArgs, argCount) {
     // send update command here
     console.log('connect ' + word.out('text'));
 }
