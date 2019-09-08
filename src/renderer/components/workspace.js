@@ -89,9 +89,14 @@ class SubtractComponent extends Rete.Component {
     super("Subtract");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addOutput(new Rete.Output("C", 'C', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
     node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
@@ -145,9 +150,14 @@ class DivideComponent extends Rete.Component {
     super("Divide");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addOutput(new Rete.Output("C", 'C', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
     node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
@@ -170,9 +180,14 @@ class ModComponent extends Rete.Component {
     super("Mod");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addOutput(new Rete.Output("C", 'C', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
     node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
@@ -195,9 +210,14 @@ class AndComponent extends Rete.Component {
     super("And");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addOutput(new Rete.Output("C", 'C', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
     node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
@@ -220,9 +240,14 @@ class OrComponent extends Rete.Component {
     super("Or");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addOutput(new Rete.Output("C", 'C', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
     node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
@@ -245,8 +270,13 @@ class NotComponent extends Rete.Component {
     super("Not");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addOutput(new Rete.Output("B", 'B', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
@@ -266,9 +296,14 @@ class GreaterThanComponent extends Rete.Component {
     super("GreaterThan");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addOutput(new Rete.Output("C", 'C', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
     node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
