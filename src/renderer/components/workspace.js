@@ -1,4 +1,4 @@
-(async () => {})
+(async () => { })
 import Vue from 'vue'
 import Rete from 'rete'
 import ConnectionPlugin from 'rete-connection-plugin'
@@ -18,7 +18,7 @@ const VueLabel = Vue.component('comp-label', {
     }
   },
   methods: {
-    change(e){
+    change(e) {
       this.value = e.target.value;
       this.update();
     },
@@ -34,16 +34,16 @@ const VueLabel = Vue.component('comp-label', {
 });
 
 class TextControl extends Rete.Control {
-    constructor(emitter, key, readonly = false) {
-      super(key);
-      this.emitter = emitter;
-      this.component = VueLabel;
-      this.props = { emitter, ikey: key, readonly };
-      this.data.render = 'vue';
-    }
+  constructor(emitter, key, readonly = false) {
+    super(key);
+    this.emitter = emitter;
+    this.component = VueLabel;
+    this.props = { emitter, ikey: key, readonly };
+    this.data.render = 'vue';
+  }
 
-    setValue(val) {
-    }
+  setValue(val) {
+  }
 }
 
 function retrieve(node, inputName) {
@@ -68,7 +68,7 @@ class AddComponent extends Rete.Component {
 
     node.addControl(new TextControl(this.editor, 'name'));
 
-    node.execute = async function(cache) {
+    node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
       var [a, ao] = retrieve(node, 'A');
       var [b, bo] = retrieve(node, 'B');
@@ -77,7 +77,32 @@ class AddComponent extends Rete.Component {
 
       var ar = (await a.execute(cache))[ao];
       var br = (await b.execute(cache))[bo];
-      var result = {'C': ar + br};
+      var result = { 'C': ar + br };
+      cache.set(this, result);
+      return result;
+    };
+  }
+}
+
+class SubtractComponent extends Rete.Component {
+  constructor() {
+    super("Subtract");
+  }
+  async builder(node) {
+    node.addOutput(new Rete.Output("C", 'C', anySocket));
+    node.addInput(new Rete.Input("A", 'A', anySocket));
+    node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.execute = async function (cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'A');
+      var [b, bo] = retrieve(node, 'B');
+      if (!a) throw new Error('Could not find A input for Subtract');
+      if (!b) throw new Error('Could not find B input for Subtract');
+
+      var ar = (await a.execute(cache))[ao];
+      var br = (await b.execute(cache))[bo];
+      var result = { 'C': ar - br };
       cache.set(this, result);
       return result;
     };
@@ -98,7 +123,7 @@ class MultiplyComponent extends Rete.Component {
 
     node.addControl(new TextControl(this.editor, 'name'));
 
-    node.execute = async function(cache) {
+    node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
       var [a, ao] = retrieve(node, 'A');
       var [b, bo] = retrieve(node, 'B');
@@ -108,7 +133,153 @@ class MultiplyComponent extends Rete.Component {
       var ar = (await a.execute(cache))[ao];
       var br = (await b.execute(cache))[bo];
 
-      var result = {'C': ar * br};
+      var result = { 'C': ar * br };
+      cache.set(this, result);
+      return result;
+    };
+  }
+}
+
+class DivideComponent extends Rete.Component {
+  constructor() {
+    super("Divide");
+  }
+  async builder(node) {
+    node.addOutput(new Rete.Output("C", 'C', anySocket));
+    node.addInput(new Rete.Input("A", 'A', anySocket));
+    node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.execute = async function (cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'A');
+      var [b, bo] = retrieve(node, 'B');
+      if (!a) throw new Error('Could not find A input for Divide');
+      if (!b) throw new Error('Could not find B input for Divide');
+
+      var ar = (await a.execute(cache))[ao];
+      var br = (await b.execute(cache))[bo];
+      var result = { 'C': ar / br };
+      cache.set(this, result);
+      return result;
+    };
+  }
+}
+
+class ModComponent extends Rete.Component {
+  constructor() {
+    super("Mod");
+  }
+  async builder(node) {
+    node.addOutput(new Rete.Output("C", 'C', anySocket));
+    node.addInput(new Rete.Input("A", 'A', anySocket));
+    node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.execute = async function (cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'A');
+      var [b, bo] = retrieve(node, 'B');
+      if (!a) throw new Error('Could not find A input for Mod');
+      if (!b) throw new Error('Could not find B input for Mod');
+
+      var ar = (await a.execute(cache))[ao];
+      var br = (await b.execute(cache))[bo];
+      var result = { 'C': ar % br };
+      cache.set(this, result);
+      return result;
+    };
+  }
+}
+
+class AndComponent extends Rete.Component {
+  constructor() {
+    super("And");
+  }
+  async builder(node) {
+    node.addOutput(new Rete.Output("C", 'C', anySocket));
+    node.addInput(new Rete.Input("A", 'A', anySocket));
+    node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.execute = async function (cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'A');
+      var [b, bo] = retrieve(node, 'B');
+      if (!a) throw new Error('Could not find A input for And');
+      if (!b) throw new Error('Could not find B input for And');
+
+      var ar = (await a.execute(cache))[ao];
+      var br = (await b.execute(cache))[bo];
+      var result = { 'C': ar && br };
+      cache.set(this, result);
+      return result;
+    };
+  }
+}
+
+class OrComponent extends Rete.Component {
+  constructor() {
+    super("Or");
+  }
+  async builder(node) {
+    node.addOutput(new Rete.Output("C", 'C', anySocket));
+    node.addInput(new Rete.Input("A", 'A', anySocket));
+    node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.execute = async function (cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'A');
+      var [b, bo] = retrieve(node, 'B');
+      if (!a) throw new Error('Could not find A input for Or');
+      if (!b) throw new Error('Could not find B input for Or');
+
+      var ar = (await a.execute(cache))[ao];
+      var br = (await b.execute(cache))[bo];
+      var result = { 'C': ar || br };
+      cache.set(this, result);
+      return result;
+    };
+  }
+}
+
+class NotComponent extends Rete.Component {
+  constructor() {
+    super("Not");
+  }
+  async builder(node) {
+    node.addOutput(new Rete.Output("B", 'B', anySocket));
+    node.addInput(new Rete.Input("A", 'A', anySocket));
+
+    node.execute = async function (cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'A');
+      if (!a) throw new Error('Could not find A input for Not');
+
+      var ar = (await a.execute(cache))[ao];
+      var result = { 'C': !ar };
+      cache.set(this, result);
+      return result;
+    };
+  }
+}
+
+class GreaterThanComponent extends Rete.Component {
+  constructor() {
+    super("GreaterThan");
+  }
+  async builder(node) {
+    node.addOutput(new Rete.Output("C", 'C', anySocket));
+    node.addInput(new Rete.Input("A", 'A', anySocket));
+    node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.execute = async function (cache) {
+      if (cache.has(this)) return cache.get(this);
+      var [a, ao] = retrieve(node, 'A');
+      var [b, bo] = retrieve(node, 'B');
+      if (!a) throw new Error('Could not find A input for Greater Than');
+      if (!b) throw new Error('Could not find B input for Greater Than');
+
+      var ar = (await a.execute(cache))[ao];
+      var br = (await b.execute(cache))[bo];
+      var result = { 'C': ar > br };
       cache.set(this, result);
       return result;
     };
@@ -130,7 +301,7 @@ class IfComponent extends Rete.Component {
 
     node.addControl(new TextControl(this.editor, 'name'));
 
-    node.execute = async function(cache) {
+    node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
       var [a, ao] = retrieve(node, 'True');
       var [b, bo] = retrieve(node, 'False');
@@ -147,7 +318,7 @@ class IfComponent extends Rete.Component {
       } else {
         val = (await b.execute(cache))[bo];
       }
-      var result = {'Value': val};
+      var result = { 'Value': val };
       cache.set(this, result);
       return result;
     };
@@ -169,9 +340,9 @@ class ConstantComponent extends Rete.Component {
     node.addControl(ctrl)
     node.addControl(new TextControl(this.editor, 'name'));
 
-    node.execute = await function(cache) {
+    node.execute = await function (cache) {
       if (cache.has(this)) return cache.get(this);
-      var result = {'Value': parseInt(node.data.value)};
+      var result = { 'Value': parseInt(node.data.value) };
       cache.set(this, result);
       return result;
     };
@@ -189,7 +360,7 @@ class InputComponent extends Rete.Component {
 
     var ctrl = new TextControl(this.editor, 'name');
     node.addControl(ctrl).addOutput(new Rete.Output('Input', 'Input', anySocket));
-    node.execute = async function(cache) {
+    node.execute = async function (cache) {
       if (cache.has(this)) {
         var c = cache.get(this);
         if (typeof c == 'function') {
@@ -197,7 +368,7 @@ class InputComponent extends Rete.Component {
           // make them all wait on the same promise
           cache.set(this, () => s);
           var r = await s;
-          cache.set(this, {'Input': r});
+          cache.set(this, { 'Input': r });
         }
         return cache.get(this);
       } else {
@@ -220,11 +391,11 @@ class OutputComponent extends Rete.Component {
     node.addControl(ctrl).addInput(new Rete.Input("Output", 'Output', anySocket));
     if (node.data && node.data.name) ctrl.setValue(node.data.name);
 
-    node.execute = async function(cache) {
+    node.execute = async function (cache) {
       if (cache.has(node)) return cache.get(node);
       var [i, io] = retrieve(node, 'Output');
       var iv = (await i.execute(cache))[io];
-      var result = {'Output': iv};
+      var result = { 'Output': iv };
       cache.set(node, result);
       return result;
     }
@@ -234,7 +405,7 @@ class OutputComponent extends Rete.Component {
 class ModuleComponent extends Rete.Component {
   constructor(modules, name) {
     super(name)
-    this.module  = {nodeType: 'module'};
+    this.module = { nodeType: 'module' };
     this.modules = modules;
   }
 
@@ -330,13 +501,13 @@ class ModuleComponent extends Rete.Component {
 
 
     var c = this;
-    node.execute = async function(cache) {
+    node.execute = async function (cache) {
       if (cache.has(this)) return cache.get(this);
       var [nodes, inputs, outputs] = await c.load();
       var newCache = new Map();
       for (let i in inputs) {
         let input = inputs[i];
-        newCache.set(input, async function() {
+        newCache.set(input, async function () {
           var [i, io] = retrieve(node, input.data.name);
           return (await i.execute(cache))[io];
         });
@@ -344,7 +515,7 @@ class ModuleComponent extends Rete.Component {
       var outputs = await Promise.all(Object.keys(outputs).map(async id => {
         const node = outputs[id];
         const val = (await node.execute(newCache))['Output'];
-        return [ node.data.name, val];
+        return [node.data.name, val];
       }));
       var result = {};
       for (let r of outputs) {
@@ -370,12 +541,12 @@ class Modules {
       let rawData = fs.readFileSync('data.json');
       let json = JSON.parse(rawData);
       this.data = json;
-    } catch (e) {}
+    } catch (e) { }
 
     var data = this.data;
-    setInterval(function() {
+    setInterval(function () {
       var json = JSON.stringify(data);
-      fs.writeFile('data.json', json, 'utf8', function() {});
+      fs.writeFile('data.json', json, 'utf8', function () { });
     }, 10000);
   }
 
@@ -417,8 +588,8 @@ class Modules {
 
   createModule(module) {
     if (this.data[module]) throw new Error('Module already exists');
-    var data = {id: 'itch@0.01', nodes:{}};
-    this.save(module, { data: {id: 'itch@0.0.1', nodes: {}} }, null);
+    var data = { id: 'itch@0.01', nodes: {} };
+    this.save(module, { data: { id: 'itch@0.0.1', nodes: {} } }, null);
     return this.getSource(module);
   }
 
@@ -463,21 +634,21 @@ import speech from '@google-cloud/speech'
 import handleSpeech from './speech.js'
 
 const options = {
-    program: `arecord`,     // Which program to use, either `arecord`, `rec`, or `sox`.
-    device: null,       // Recording device to use.
+  program: `arecord`,     // Which program to use, either `arecord`, `rec`, or `sox`.
+  device: null,       // Recording device to use.
 
-    bits: 16,           // Sample size. (only for `rec` and `sox`)
-    channels: 1,        // Channel count.
-    encoding: `signed-integer`,  // Encoding type. (only for `rec` and `sox`)
-    format: `S16_LE`,   // Encoding type. (only for `arecord`)
-    rate: 16000,        // Sample rate.
-    type: `wav`,        // Format type.
+  bits: 16,           // Sample size. (only for `rec` and `sox`)
+  channels: 1,        // Channel count.
+  encoding: `signed-integer`,  // Encoding type. (only for `rec` and `sox`)
+  format: `S16_LE`,   // Encoding type. (only for `arecord`)
+  rate: 16000,        // Sample rate.
+  type: `wav`,        // Format type.
 
-    // Following options only available when using `rec` or `sox`.
-    silence: 2,         // Duration of silence in seconds before it stops recording.
-    thresholdStart: 0.5,  // Silence threshold to start recording.
-    thresholdStop: 0.5,   // Silence threshold to stop recording.
-    keepSilence: true   // Keep the silence in the recording.
+  // Following options only available when using `rec` or `sox`.
+  silence: 2,         // Duration of silence in seconds before it stops recording.
+  thresholdStart: 0.5,  // Silence threshold to start recording.
+  thresholdStop: 0.5,   // Silence threshold to stop recording.
+  keepSilence: true   // Keep the silence in the recording.
 };
 
 var fileCounter = 0;
@@ -490,8 +661,8 @@ function toggleSpeak(client, editor, target) {
     recorder.stop();
     let name = speakFile;
     speakFile = null;
-    fs.readFile(name, function(err, data) {
-      (async() => {
+    fs.readFile(name, function (err, data) {
+      (async () => {
         const audioBytes = data.toString('base64');
         const audio = {
           content: audioBytes
@@ -516,12 +687,12 @@ function toggleSpeak(client, editor, target) {
     });
   } else {
     target.note('Starting Recording');
-    speakFile = '../.recording'+ (fileCounter++ % 10) + '.wav';
-    const fileStream = fs.createWriteStream(speakFile, {encoding: 'binary'});
+    speakFile = '../.recording' + (fileCounter++ % 10) + '.wav';
+    const fileStream = fs.createWriteStream(speakFile, { encoding: 'binary' });
     recorder.start().stream().pipe(fileStream);
-    recorder.stream().on('close', function() {});
-    recorder.stream().on('end', function() {});
-    recorder.stream().on('error', function(e) {});
+    recorder.stream().on('close', function () { });
+    recorder.stream().on('end', function () { });
+    recorder.stream().on('error', function (e) { });
   }
 }
 
@@ -531,33 +702,33 @@ export function bind(container, target) {
 
   // setup the editor
   var editor = new Rete.NodeEditor("itch@0.0.1", container);
-  editor.use(ConnectionPlugin, { curvature : 0.4 });
+  editor.use(ConnectionPlugin, { curvature: 0.4 });
   editor.use(ContextMenuPlugin);
   editor.use(VueRenderPlugin);
 
   var engine = new Rete.Engine("itch@0.0.1");
 
   let data = modules.getData();
-  editor.use(ModulePlugin, { engine, modules: data});
+  editor.use(ModulePlugin, { engine, modules: data });
 
   editor.view.resize();
   container.style.width = "100%";
   container.style.height = "100%";
-  
+
   // listen for dirty buffer
-  editor.on(['nodecreated', 'noderemoved', 'connectioncreated', 
-             'connectionremoved', 'nodetranslated'], () => {
+  editor.on(['nodecreated', 'noderemoved', 'connectioncreated',
+    'connectionremoved', 'nodetranslated'], () => {
       target.edited();
     });
   editor.on('keydown', e => {
     if (focus != editor) return;
     if (e.dead) return;
     switch (e.code) {
-    case 'Space': 
+      case 'Space':
         toggleSpeak(client, editor, target);
         break;
-    case 'KeyR':
-        (async() => {
+      case 'KeyR':
+        (async () => {
           if (editor.selected.list.length > 0) {
             var node = editor.selected.list[0];
             var rep = null;
@@ -609,7 +780,7 @@ export async function loadEditor(module, editor) {
 }
 
 export function saveEditor(module, editor) {
-  modules.save(module, {data: editor.toJSON()}, editor)
+  modules.save(module, { data: editor.toJSON() }, editor)
 }
 
 export function createEditor(module, editor) {
