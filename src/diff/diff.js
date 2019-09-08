@@ -153,6 +153,7 @@ function handleConnectArgument(word, editor, savedArgs, argCount) {
     // need from node/output and to node/input
     if (argCount < 4) {
         savedArgs[argCount] = word.out('text');
+        argCount++;
         return;
     }
     // now we have all the data we need
@@ -191,6 +192,7 @@ function handleDisconnectArgument(word, editor, savedArgs, argCount) {
     // need from node/output and to node/input
     if (argCount < 4) {
         savedArgs[argCount] = word.out('text');
+        argCount++;
         return;
     }
     // now we have all the data we need
@@ -232,6 +234,22 @@ function handleDisconnectArgument(word, editor, savedArgs, argCount) {
 function parseUpdateArgument(word, editor, savedArgs, argCount) {
     // send update command here
     console.log('connect ' + word.out('text'));
+    // get node and change its values directly
+    if (argCount < 3) {
+        savedArgs[argCount] = word.out('text');
+        argCount++;
+        return;
+    }
+    for (let n in editor.nodes) {
+        if (n.name === savedArgs[0]) {
+            // edit this node
+            if (savedArgs[1] === 'name') {
+                n.name = savedArgs[2];
+            } else if (savedArgs[1] === 'data') {
+                // somehow change data, or we can scrap this and leave it at renaming only
+            }
+        }
+    }
 }
 
 function getModeFromWord(word, currentMode) {
