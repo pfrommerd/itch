@@ -130,6 +130,7 @@ function handleCreateArgument(word, editor, savedArgs, argCount) {
         let n = new Node('a constant');
         n.data = data;
         editor.addNode(n);
+        argCount == 0;
     }
 }
 
@@ -183,6 +184,7 @@ function handleConnectArgument(word, editor, savedArgs, argCount) {
     }
     if (output != null && input != null) {
         editor.connect(output, input);
+        argCount == 0;
     }
 }
 
@@ -226,6 +228,7 @@ function handleDisconnectArgument(word, editor, savedArgs, argCount) {
         if (c.output == output && c.input == input) {
             // remove connection
             editor.removeConnection(c);
+            argCount == 0;
             break;
         }
     }
@@ -250,6 +253,7 @@ function parseUpdateArgument(word, editor, savedArgs, argCount) {
             }
         }
     }
+    argCount == 0;
 }
 
 function getModeFromWord(word, currentMode) {
