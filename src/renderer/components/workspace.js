@@ -722,7 +722,7 @@ function toggleSpeak(client, editor, target) {
     });
   } else {
     target.note('Starting Recording');
-    speakFile = '../.recording' + (fileCounter++ % 10) + '.wav';
+    speakFile = '.recording' + (fileCounter++ % 10) + '.wav';
     const fileStream = fs.createWriteStream(speakFile, { encoding: 'binary' });
     recorder.start().stream().pipe(fileStream);
     recorder.stream().on('close', function () { });

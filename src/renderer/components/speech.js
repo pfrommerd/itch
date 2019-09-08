@@ -458,6 +458,7 @@ async function parseAction(editor, structure) {
 }
 
 export default function(editor, text) {
+  if (text.length == 0) return;
   const sent = new CoreNLP.simple.Sentence(text);
   pipeline.annotate(sent).then(sent => {
     (async() => {
