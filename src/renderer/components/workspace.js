@@ -14,7 +14,7 @@ const VueLabel = Vue.component('comp-label', {
   template: '<input :value="value" :readonly="readonly" @input="change($event)" @dblclick.stop=""/>',
   data() {
     return {
-      value: 'label ' + counter++,
+      value: ''
     }
   },
   methods: {
@@ -59,9 +59,14 @@ class AddComponent extends Rete.Component {
     super("Add");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addOutput(new Rete.Output("C", 'C', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
     node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function(cache) {
       if (cache.has(this)) return cache.get(this);
@@ -84,9 +89,14 @@ class MultiplyComponent extends Rete.Component {
     super("Multiply");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addOutput(new Rete.Output("C", 'C', anySocket));
     node.addInput(new Rete.Input("A", 'A', anySocket));
     node.addInput(new Rete.Input("B", 'B', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function(cache) {
       if (cache.has(this)) return cache.get(this);
@@ -110,10 +120,15 @@ class IfComponent extends Rete.Component {
     super("If");
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     node.addInput(new Rete.Input("Expr", 'Expr', anySocket));
     node.addInput(new Rete.Input("True", 'True', anySocket));
     node.addInput(new Rete.Input("False", 'False', anySocket));
     node.addOutput(new Rete.Output("Value", 'Value', anySocket));
+
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = async function(cache) {
       if (cache.has(this)) return cache.get(this);
@@ -146,9 +161,13 @@ class ConstantComponent extends Rete.Component {
 
   async builder(node) {
     if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
     if (!node.data.value) node.data.value = '0';
+
     var ctrl = new TextControl(this.editor, 'value');
-    node.addControl(ctrl).addOutput(new Rete.Output("Value", 'Value', anySocket));
+    node.addOutput(new Rete.Output("Value", 'Value', anySocket));
+    node.addControl(ctrl)
+    node.addControl(new TextControl(this.editor, 'name'));
 
     node.execute = await function(cache) {
       if (cache.has(this)) return cache.get(this);
@@ -165,6 +184,9 @@ class InputComponent extends Rete.Component {
     this.module = { nodeType: 'input', socket: anySocket };
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     var ctrl = new TextControl(this.editor, 'name');
     node.addControl(ctrl).addOutput(new Rete.Output('Input', 'Input', anySocket));
     node.execute = async function(cache) {
@@ -191,6 +213,9 @@ class OutputComponent extends Rete.Component {
     this.module = { nodeType: 'output', socket: anySocket };
   }
   async builder(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     var ctrl = new TextControl(this.editor, 'name');
     node.addControl(ctrl).addInput(new Rete.Input("Output", 'Output', anySocket));
     if (node.data && node.data.name) ctrl.setValue(node.data.name);
@@ -214,6 +239,9 @@ class ModuleComponent extends Rete.Component {
   }
 
   updateNode(node) {
+    if (!node.data) node.data = {};
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+
     var newInputs = new Set();
     var newOutputs = new Set();
     var data = this.modules.getSource(this.name);
@@ -295,8 +323,11 @@ class ModuleComponent extends Rete.Component {
     // whenever there is a save from another editor,
     // rebuild this node's inputs/outputs
     node.data.module = this.name;
+    if (!node.data.name) node.data.name = 'Node ' + counter++;
+    node.addControl(new TextControl(this.editor, 'name'));
     this.updateNode(node);
     this.modules.onChange(this.name, () => this.updateNode(node));
+
 
     var c = this;
     node.execute = async function(cache) {
@@ -427,7 +458,78 @@ modules.addBuiltin(new IfComponent());
 modules.addBuiltin(new InputComponent());
 modules.addBuiltin(new OutputComponent());
 
+import AudioRecorder from 'node-audiorecorder'
+import speech from '@google-cloud/speech'
+import handleSpeech from './speech.js'
+
+const options = {
+    program: `arecord`,     // Which program to use, either `arecord`, `rec`, or `sox`.
+    device: null,       // Recording device to use.
+
+    bits: 16,           // Sample size. (only for `rec` and `sox`)
+    channels: 1,        // Channel count.
+    encoding: `signed-integer`,  // Encoding type. (only for `rec` and `sox`)
+    format: `S16_LE`,   // Encoding type. (only for `arecord`)
+    rate: 16000,        // Sample rate.
+    type: `wav`,        // Format type.
+
+    // Following options only available when using `rec` or `sox`.
+    silence: 2,         // Duration of silence in seconds before it stops recording.
+    thresholdStart: 0.5,  // Silence threshold to start recording.
+    thresholdStop: 0.5,   // Silence threshold to stop recording.
+    keepSilence: true   // Keep the silence in the recording.
+};
+
+var fileCounter = 0;
+var speakFile = null;
+
+var recorder = new AudioRecorder(options, console);
+function toggleSpeak(client, editor, target) {
+  if (speakFile) {
+    target.note('Stopping Recording');
+    recorder.stop();
+    let name = speakFile;
+    speakFile = null;
+    fs.readFile(name, function(err, data) {
+      (async() => {
+        const audioBytes = data.toString('base64');
+        const audio = {
+          content: audioBytes
+        };
+        const config = {
+          encoding: 'LINEAR16',
+          sampleRateHertz: 16000,
+          languageCode: 'en-US'
+        };
+        const request = {
+          audio: audio,
+          config: config
+        };
+        console.log(client);
+        const [response] = await client.recognize(request);
+        const transcription = response.results
+          .map(result => result.alternatives[0].transcript)
+          .join('\n');
+        target.note(transcription);
+        handleSpeech(editor, transcription);
+      })();
+    });
+  } else {
+    target.note('Starting Recording');
+    speakFile = '../.recording'+ (fileCounter++ % 10) + '.wav';
+    const fileStream = fs.createWriteStream(speakFile, {encoding: 'binary'});
+    recorder.start().stream().pipe(fileStream);
+    recorder.stream().on('close', function() {});
+    recorder.stream().on('end', function() {});
+    recorder.stream().on('error', function(e) {});
+  }
+}
+
 export function bind(container, target) {
+  // setup the speech client
+  var client = new speech.SpeechClient();
+
+  // setup the editor
   var editor = new Rete.NodeEditor("itch@0.0.1", container);
   editor.use(ConnectionPlugin, { curvature : 0.4 });
   editor.use(ContextMenuPlugin);
@@ -452,6 +554,7 @@ export function bind(container, target) {
     if (e.dead) return;
     switch (e.code) {
     case 'Space': 
+        toggleSpeak(client, editor, target);
         break;
     case 'KeyR':
         (async() => {
@@ -493,7 +596,7 @@ export function bind(container, target) {
     }
   });
 
-  return [editor, availableModules];
+  return [editor, client, availableModules];
 }
 
 export async function loadEditor(module, editor) {

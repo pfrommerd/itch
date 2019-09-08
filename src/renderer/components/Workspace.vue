@@ -35,7 +35,8 @@ export default {
              loading: false,
              newName: '',
              availableModules: [],
-             editor: null }
+             editor: null,
+             client: null }
   },
   update: function() {
   },
@@ -86,7 +87,7 @@ export default {
   mounted: function() {
     var container = this.$el.childNodes[0]
     this.$nextTick(() => {
-      [this.editor, this.availableModules] = bind(container, this)
+      [this.editor, this.client, this.availableModules] = bind(container, this)
       modules.anyChange((name, cause) => {
         if (cause == this.editor) return;
         if (name == this.module) this.load(this.module);
