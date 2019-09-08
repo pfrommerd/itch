@@ -84,7 +84,8 @@
     "rete-connection-plugin": "0.8.2-rc.1",
     "@google-cloud/speech": "3.2.5",
     "keypress": "0.2.1",
-    "node-audiorecorder": "1.4.1"
+    "node-audiorecorder": "1.4.1",
+    "compromise": "11.14.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.2",
