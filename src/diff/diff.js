@@ -163,23 +163,19 @@ function handleConnectArgument(word, editor, savedArgs, argCount) {
         if (n.name === savedArgs[0]) {
             // this is the node with the output
             // search keys for name
-            let i = 0;
             for (let x in n.outputs.prototype.keys()) {
                 if (x == savedArgs[1]) {
                     output = n.outputs.get(x);
-                } else {
-                    i++;
+                    break;
                 }
             }
         } else if (n.name === savedArgs[2]) {
             // this is the node with the input 
             // search keys for number
-            let i = 0;
             for (let x in n.outputs.prototype.keys()) {
                 if (x === savedArgs[4]) {
                     input = n.outputs.get(x);
-                } else {
-                    i++;
+                    break;
                 }
             }
         }
@@ -199,14 +195,36 @@ function handleDisconnectArgument(word, editor, savedArgs, argCount) {
     }
     // now we have all the data we need
 
-    // not sure how we find a conneciton between two nodes
+    // search for input and output like for connect
+    // check with all connections from node.getConnections() for the same input and output
+    let output = null;
+    let input = null;
+    let source = null;
     for (let n in editor.nodes) {
         if (n.name === savedArgs[0]) {
-            // we have source node
-            n.getConnections.forEach((connection) => {
-                // check connection input and output with saved args
-
-            });
+            // this is the node with the output
+            // search keys for name
+            for (let x in n.outputs.prototype.keys()) {
+                if (x === savedArgs[1]) {
+                    output = n.outputs.get(x);
+                    source = n;
+                }
+            }
+        } else if (n.name === savedArgs[2]) {
+            // this is the node with the input 
+            // search keys for number
+            for (let x in n.outputs.prototype.keys()) {
+                if (x === savedArgs[4]) {
+                    input = n.outputs.get(x);
+                }
+            }
+        }
+    }
+    for (let c in source.getConnections()) {
+        if (c.output == output && c.input == input) {
+            // remove connection
+            editor.removeConnection(c);
+            break;
         }
     }
 }
