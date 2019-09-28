@@ -320,7 +320,7 @@ class Add {
         newConnections.push(to.connectTo(nb.inputs.get('B')));
         newNodes.push(nb);
 
-        lastBlock = n;
+        lastBlock = nb;
       } else lastBlock = n;
     }
     for (let n of [...newNodes, ...nodes]) {
